@@ -6,7 +6,7 @@ const Database = require('better-sqlite3');
 const SEPOMEX_URL = 'https://www.correosdemexico.gob.mx/datosabiertos/cp/cpdescarga.txt';
 const TXT_PATH = path.join(__dirname, '..', 'data', 'cpdescarga.txt');
 const DB_PATH = path.join(__dirname, '..', 'data', 'sepomex.db');
-const ESTADO_FILTRO = 'Guerrero';
+const ESTADOS_FILTRO = ['Guerrero', 'Morelos'];
 
 function main() {
   // Download if file doesn't exist
@@ -59,7 +59,7 @@ function main() {
       c_cve_ciudad   // 14 - clave ciudad
     ] = fields;
 
-    if (d_estado !== ESTADO_FILTRO) continue;
+    if (!ESTADOS_FILTRO.includes(d_estado)) continue;
 
     // Validate CP is 5 digits
     if (!/^\d{5}$/.test(d_codigo)) {
@@ -80,7 +80,7 @@ function main() {
     });
   }
 
-  console.log(`Registros de ${ESTADO_FILTRO}: ${records.length}`);
+  console.log(`Registros de [${ESTADOS_FILTRO.join(', ')}]: ${records.length}`);
   console.log(`Líneas omitidas: ${skipped}`);
 
   if (records.length === 0) {
@@ -134,7 +134,7 @@ function main() {
   // Save metadata
   db.prepare('INSERT INTO metadata (key, value) VALUES (?, ?)').run('last_updated', new Date().toISOString());
   db.prepare('INSERT INTO metadata (key, value) VALUES (?, ?)').run('record_count', String(records.length));
-  db.prepare('INSERT INTO metadata (key, value) VALUES (?, ?)').run('estado', ESTADO_FILTRO);
+  db.prepare('INSERT INTO metadata (key, value) VALUES (?, ?)').run('estados', ESTADOS_FILTRO.join(','));
 
   db.close();
 
